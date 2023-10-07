@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer');
 const winston = require('winston');
-const cron = require('node-cron');
 
 // Create a Winston logger instance
 const logger = winston.createLogger({
@@ -20,7 +19,23 @@ const logger = winston.createLogger({
 // Define a function to perform the Puppeteer tasks
 async function performPuppeteerTasks() {
   // Launch a headless browser
-  const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu',
+            '--disable-software-rasterizer',
+            '--disable-web-security',
+            '--disable-popup-blocking',
+            '--ignore-certificate-errors',
+            '--allow-insecure-localhost',
+        ],
+    });
 
   // Create a new page
   const page = await browser.newPage();
@@ -52,10 +67,6 @@ async function performPuppeteerTasks() {
   await browser.close();
 }
 
-// Schedule the function to run every 30 minutes
-cron.schedule('*/30 * * * *', () => {
-  logger.info('Starting Puppeteer tasks...');
-  performPuppeteerTasks()
+performPuppeteerTasks()
     .then(() => logger.info('Puppeteer tasks completed.'))
     .catch((error) => logger.error('Puppeteer tasks failed:', error));
-});
